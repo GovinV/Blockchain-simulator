@@ -26,16 +26,16 @@ public class BlockChain
 		Block currentBlock; 
 		Block previousBlock;
 		
-		//loop through blockchain to check hashes:
+		
 		for(int i=1; i < this.blockchain.size(); i++) {
 			currentBlock = this.blockchain.get(i);
 			previousBlock = this.blockchain.get(i-1);
-			//compare registered hash and calculated hash:
+			
 			if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
 				System.out.println("Current Hashes not equal");			
 				return false;
 			}
-			//compare previous hash and registered previous hash
+			
 			if(!previousBlock.hash.equals(currentBlock.previousHash) ) {
 				System.out.println("Previous Hashes not equal");
 				return false;
