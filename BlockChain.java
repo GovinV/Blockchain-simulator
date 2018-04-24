@@ -1,46 +1,48 @@
-import java.security.MessageDigest;
-import java.util.Arrays;
-import java.io.*;
+import java.util.ArrayList;
 
 
 public class BlockChain 
 {
-	private BlockChain prev_block;
-	private byte[] hash;
-	private int[] ops;
 
+	public static ArrayList<Block> blockchain = new ArrayList<Block>();
 
-	public BlockChain(BlockChain prev, int[] opsDone)
-	{
-		this.prev_block=prev;
-		this.ops=new int[opsDone.length];
-		this.ops=Arrays.copyOf(opsDone,opsDone.length);
-		this.hash=getHash(prev);
+	public static void main(String[] args) {
+		
+		
+		
+		blockchain.add(new Block({"1","2"}, "0"));
+		System.out.println("Hash for block 1 : " + firstBlock.hash);
+		
+		blockchain.add(new Block({"3","4"},firstBlock.hash));
+		System.out.println("Hash for block 2 : " + secondBlock.hash);
+		
+		blockchain.add(new Block({"5","6"},secondBlock.hash));
+		System.out.println("Hash for block 3 : " + thirdBlock.hash);
+
+		
 	}
 
-	public void showHash()
-	{
-		StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < this.hash.length; i++) {
-         sb.append(Integer.toString((this.hash[i] & 0xff) + 0x100, 16).substring(1));
-        }
-
-        System.out.println("En format hexa : " + sb.toString());
+	public static Boolean isBlockChainValid() {
+		Block currentBlock; 
+		Block previousBlock;
+		
+		//loop through blockchain to check hashes:
+		for(int i=1; i < this.blockchain.size(); i++) {
+			currentBlock = this.blockchain.get(i);
+			previousBlock = this.blockchain.get(i-1);
+			//compare registered hash and calculated hash:
+			if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
+				System.out.println("Current Hashes not equal");			
+				return false;
+			}
+			//compare previous hash and registered previous hash
+			if(!previousBlock.hash.equals(currentBlock.previousHash) ) {
+				System.out.println("Previous Hashes not equal");
+				return false;
+			}
+		}
+		return true;
 	}
 
-	private byte[] getHash(BlockChain prev)
-	{
-		MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(convertToBytes(prev));
-
-        return md.digest();
-	}
-	private byte[] convertToBytes(Object object) throws IOException {
-	    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	         ObjectOutput out = new ObjectOutputStream(bos)) {
-	        out.writeObject(object);
-	        return bos.toByteArray();
-	    } 
-	}
 
 }
