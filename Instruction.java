@@ -5,6 +5,7 @@ public class Instruction
 	public String volume;
 	public boolean isTransaction;// transaction or inscription
 	public boolean inscription;
+	public boolean done;
 
 
 	public Instruction(String sender, String receiver, String volume)
@@ -13,6 +14,7 @@ public class Instruction
 		this.receiver=receiver;
 		this.volume=volume;
 		this.isTransaction=true;
+		this.done=false;
 	}
 
 
@@ -20,7 +22,10 @@ public class Instruction
 	{
 		this.sender=sender;
 		this.isTransaction=false;
+		this.done=true;
 	}
+
+	
 
 	public String toString()
 	{

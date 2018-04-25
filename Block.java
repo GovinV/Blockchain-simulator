@@ -1,5 +1,5 @@
 import java.security.MessageDigest;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Date;
 import java.io.*;
 
@@ -8,23 +8,22 @@ public class Block
 	public String hash;
 	public String previousHash;
 	private long timeStamp; //millisecond since 1/1/1970
-	private Instruction[] ops; 
+	private ArrayList<Instruction> ops; 
 
 	//Block Constructor.
-	public Block(Instruction[] opsDone,String previousHash ) 
+	public Block(ArrayList<Instruction> opsDone,String previousHash ) 
 	{
 		this.previousHash = previousHash;
 		this.timeStamp = new Date().getTime();
-		this.ops=new Instruction[opsDone.length];
-		this.ops=Arrays.copyOf(opsDone,opsDone.length);
+		this.ops=new ArrayList<Instruction>(opsDone);
 		this.hash = this.genHash();
 	}
 
 	public String genHash()
 	{
 		String input = this.previousHash + Long.toString(this.timeStamp);
-		for(int i =0; i < this.ops.length; i++)
-			input+=this.ops[i].toString();
+		for(int i =0; i < this.ops.size(); i++)
+			input+=this.ops.get(i).toString();
 
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");	        
