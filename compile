@@ -1,5 +1,5 @@
 #!/bin/bash
 
-javac *.java
+javac *.java Jeu_Test/*.java
 rmic BlockChainImpl
-
+cp MyKey.class BlockChain.class BlockChainImpl_Stub.class Block.class Instruction.class Jeu_Test/ 

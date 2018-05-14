@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm *.class Jeu_Test/*.class
+rm Jeu_Test/*.dump *.dump

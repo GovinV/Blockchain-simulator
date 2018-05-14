@@ -3,7 +3,7 @@ import java.net.MalformedURLException ;
 import java.security.*;
 import java.util.ArrayList;
 
-public class Client
+public class ClientSignProblem
 {
 
     public static MyKey genKey()
@@ -28,8 +28,12 @@ public class Client
 
     public static byte[] getSignature(MyKey client, String[] args) throws InvalidKeyException, Exception
     {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(512);
+        KeyPair kp = kpg.generateKeyPair();
+        System.out.println("Original Private Key:" +client.mine.getPrivate() +"\nTry to Sign with this key: "+kp.getPrivate()+"\n");
         Signature sign = Signature.getInstance("SHA256withRSA");
-        sign.initSign(client.mine.getPrivate());
+        sign.initSign(kp.getPrivate());
         String input = client.toString(0);
         for(int i =0; i<args.length;i++)
             input+=args[i];
@@ -57,14 +61,12 @@ public class Client
                 } catch (Exception e) {
                     System.out.println(e);
                 }
-
                 ArrayList<String> others = b.getOthersParticipants(client.toString(0));
-
                 byte[] sign = getSignature(client,new String[]{others.get(0),"2"});
+                System.out.println("non");
                 System.out.println("Client receive : " + b.addInstruc(client.toString(0),others.get(0),"2",sign)) ; //add timestamps
-
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(2000);
                 } catch (Exception e) {
                     System.out.println(e);
                 }

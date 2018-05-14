@@ -1,7 +1,5 @@
 #!/bin/bash
 
-pkill rmiregistry
-sleep 1
 rmiregistry $1 &
 sleep 1
-java Serveur $1
+java Serveur $@
