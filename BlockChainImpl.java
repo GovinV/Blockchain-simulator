@@ -16,10 +16,12 @@ public class BlockChainImpl
 	public ArrayList<Instruction> currentInstruc;
 	public ArrayList<Integer> otherServers;
 	public ArrayList<Participant> participants;
+	public ArrayList<String> othersParticipants;
 	final public int maxParticipant=4;
 	private int nbParticipant;
 	private int depth;
 	private int difficulty;
+	private int lock;
 	
 
 	public BlockChainImpl() throws RemoteException
@@ -29,6 +31,7 @@ public class BlockChainImpl
 		this.currentInstruc = new ArrayList<Instruction>();
 		this.otherServers = new ArrayList<Integer>();
 		this.participants = new ArrayList<Participant>();
+		this.othersParticipants = new ArrayList<String>();
 		this.nbParticipant=0;
 		this.depth=-1;
 		this.difficulty=4;
@@ -82,13 +85,14 @@ public class BlockChainImpl
 	{
 		Instruction ins=new Instruction(senderId,timeStamp);
 		currentInstruc.add(ins);
-		System.out.println("Received:"+this.currentInstruc.get(this.currentInstruc.size()-1).toString());
+		//System.out.println("Received:"+this.currentInstruc.get(this.currentInstruc.size()-1).toString());
 		for(int i =0; i< this.otherServers.size(); i++)
 		{
 			BlockChain b = getServerChain(otherServers.get(i));
 			if(b != null)
 				b.addInstruc(senderId,timeStamp,myPort);
 		}
+		this.getParticipant(senderId).creditTrans();
 		return "Instruction added : inscription";
 	}
 
@@ -97,30 +101,34 @@ public class BlockChainImpl
 	{
 		if(!this.containsParticipant(senderId))
     		return "You're are not my client";
+    	if(this.getParticipant(senderId).amount-Integer.parseInt(volume) < 0)
+    		return "You don't have the money";
 		if(!this.verifySender(senderId,receiverId+volume,sign))
 			return "False signature, this is not your real Public key";
 		long timeStamp = new Date().getTime();
 		Instruction ins=new Instruction(senderId,receiverId,volume,timeStamp);
 		currentInstruc.add(ins);
-		System.out.println("Received:"+this.currentInstruc.get(this.currentInstruc.size()-1).toString());
+		//System.out.println("Received:"+this.currentInstruc.get(this.currentInstruc.size()-1).toString());
 		for(int i =0; i< this.otherServers.size(); i++)
 		{
 			BlockChain b = getServerChain(otherServers.get(i));
 			if(b != null)
 				b.addInstruc(senderId,receiverId,volume,timeStamp,myPort);
 		}
+		this.getParticipant(senderId).creditTrans();
 		return "Instruction added : transaction";
 	}	
 
 	public String addInstruc(String senderId, long timeStamp, int port) throws RemoteException
 	{
+		if(this.containsParticipant(senderId))
+    		return null;
+    	this.othersParticipants.add(senderId);
 		Instruction ins=new Instruction(senderId, timeStamp);
-		if(!isInstrucValid(ins))
-			return "Instruction not Valid";
 		if(this.chainHasInstruc(this.chain,ins)!=-1 || this.currHasInstruc(ins) !=-1)
 			return "Already have it";
 		currentInstruc.add(ins);
-		System.out.println("Received:"+this.currentInstruc.get(this.currentInstruc.size()-1).toString());
+		//System.out.println("Received:"+this.currentInstruc.get(this.currentInstruc.size()-1).toString());
 		for(int i =0; i< this.otherServers.size(); i++)
 		{
 			if(otherServers.get(i) == port)
@@ -139,7 +147,7 @@ public class BlockChainImpl
 		if(this.chainHasInstruc(this.chain,ins)!=-1 || this.currHasInstruc(ins) !=-1)
 			return "Already have it";
 		currentInstruc.add(ins);
-		System.out.println("Received:"+this.currentInstruc.get(this.currentInstruc.size()-1).toString());
+		//System.out.println("Received:"+this.currentInstruc.get(this.currentInstruc.size()-1).toString());
 		for(int i =0; i< this.otherServers.size(); i++)
 		{
 			if(otherServers.get(i) == port)
@@ -170,23 +178,34 @@ public class BlockChainImpl
 		this.myPort=port;
 	}
 
-	public String getWork(String participantId) throws RemoteException
+	public int getWork(String participantId) throws RemoteException
 	{
 		if(!this.containsParticipant(participantId))
-			return "None\n You are not my client\n";
-		if(this.depth<this.chain.size()-1)
-		{
-			return this.chain.get(depth+1).toStringForHash();
-		}
-		else
-		{
-			return "None";
-		}
+			return -1;
+		int min = this.chain.size()*100;
+		return min;
+	}
+
+	public Boolean checkWork(int number, String participantId) throws RemoteException
+	{
+		Boolean found =false;
+        if (number % 42 == 0) 
+                found = true;
+        if(found)
+        {
+        	this.getParticipant(participantId).creditPOW();
+        }
+        return found;		
+	}
+
+	public String getParticipantState(String participantId) throws RemoteException
+	{
+		return this.getParticipant(participantId).toString();
 	}
 
 	private void checkCreateBlock() throws RemoteException
 	{	
-
+		this.difficulty=4 + (this.chain.size()/5);
 		if(this.depth==-1)
 		{
 			if(this.currentInstruc.size()>=2 && this.chain.size()==0)
@@ -212,6 +231,7 @@ public class BlockChainImpl
 				{
 					this.chain.get(this.depth+1).validedBlock();
 					this.depth++;
+					this.giveReward();
 					this.sendLastBlock();
 				}
 		}
@@ -221,6 +241,8 @@ public class BlockChainImpl
 	{
 		try
 		{
+			if(this.lock==1)
+				return;
 			this.checkCreateBlock();
 		}
 		catch (RemoteException re) { System.out.println(re) ;}
@@ -249,6 +271,8 @@ public class BlockChainImpl
 		ArrayList<String> others = new ArrayList<String>();
 		for(int i=0; i<this.participants.size(); i++)
 			others.add(this.participants.get(i).id);
+		for(int i=0; i<this.othersParticipants.size(); i++)
+			others.add(this.othersParticipants.get(i));		
 		others.remove(participantId);
 		return others;
 	}
@@ -266,89 +290,136 @@ public class BlockChainImpl
 			return false;
 	}
 
-	private Boolean isInstrucValid(Instruction i)
-	{
-		return true;
-	}
-
 	private void sendLastBlock() throws RemoteException
 	{
 		for(int i =0; i< this.otherServers.size(); i++)
 		{
 			BlockChain b = getServerChain(otherServers.get(i));
+			Boolean thereIsBetter=true;
 			if(b != null)
-				b.newBlockFromOthers(this.chain.get(this.depth),this.depth,this.myPort);
+				thereIsBetter=b.newBlockFromOthers(this.chain.get(this.depth),this.depth,this.myPort);
+			if(thereIsBetter=false)
+				return;
 		}
 	}
 
-	public void newBlockFromOthers(Block newBlock, int depth, int port) throws RemoteException
+
+	public Boolean newBlockFromOthers(Block newBlock, int depth, int port) throws RemoteException
 	{	
+		int thereIsBetter=0;
 		System.out.println("Block from "+ port+ "\nTimeStamp: "+newBlock.timeStamp);
-		if(this.depth >= depth)
-			return;/*if is the size of is chain is lower or the same as our with is new block, we discard it*/
-		if(depth > this.depth)
+		if(this.depth > depth)
+			return false;/*if is the size of is chain is lower or the same as our with is new block, we discard it*/
+		if(this.depth==-1)
 		{
-			if(depth == this.depth+1)
+			System.out.println("0");
+			if(newBlock.previousHash.equals("0"))
 			{
-				if(this.depth == -1 || this.chain.get(this.depth).hash.equals(newBlock.previousHash))
+				System.out.println("1");
+				if(this.chain.size()>this.depth+1)
 				{
-					if(this.chain.size() > this.depth+1)
+					System.out.println("2");
+					for(int i= this.depth+1; i<this.chain.size();i++)
 					{
-						this.chain.add(this.depth+1,newBlock);
-						for(int i=0; i < newBlock.ops.size(); i++)
-						{
-							int found=currHasInstruc(newBlock.ops.get(i));
-							if(found != -1)
-								this.currentInstruc.remove(found);
-							found=blockHasInstruc(this.chain.get(this.depth+2),newBlock.ops.get(i));
-							if(found != -1)
-								this.chain.get(this.depth+2).ops.remove(found);
-						}
-						if(this.chain.get(this.depth+2).ops.size()==0)
-							this.chain.remove(this.depth+2);
-						else
-							this.chain.get(this.depth+2).setPreviousHash(newBlock.hash);
+						this.passBlockInsToCurr(this.chain.get(i));
 					}
+					for(int i= this.depth+1; i<this.chain.size();i++)
+					{
+						this.chain.remove(i);
+					}
+				}
+				for(int i=0; i<newBlock.ops.size();i++)
+				{
+					int found=currHasInstruc(newBlock.ops.get(i));
+					if(found != -1)
+						this.currentInstruc.remove(found);
+				}		
+				this.chain.add(newBlock);
+				this.depth++;		
+			}
+			else
+				thereIsBetter=1;
+		}
+		else
+		{
+			System.out.println("3");
+			int olH = oldHash(this.chain,newBlock.previousHash);
+			if(olH != -1)
+			{
+				System.out.println("4");
+				if(this.chain.get(olH).timeStamp <= newBlock.timeStamp)
+					return false;
+				else
+				{	
+					System.out.println("5");
+					if(this.depth<depth)
+						thereIsBetter=1;
 					else
-						this.chain.add(newBlock);
-					this.depth++;
+						return false;
+				}
+			}	
+			else
+			{
+				System.out.println("6");
+				if(this.chain.get(this.depth).hash.equals(newBlock.previousHash))
+				{
+					System.out.println("7");
+					if(this.chain.size()>this.depth+1)
+					{
+						System.out.println("8");
+						for(int i= this.depth+1; i<this.chain.size();i++)
+						{
+							this.passBlockInsToCurr(this.chain.get(i));
+						}
+						for(int i= this.depth+1; i<this.chain.size();i++)
+						{
+							this.chain.remove(i);
+						}
+					}
+					for(int i=0; i<newBlock.ops.size();i++)
+					{
+						int found=currHasInstruc(newBlock.ops.get(i));
+						if(found != -1)
+							this.currentInstruc.remove(found);
+					}		
+					this.chain.add(newBlock);
+					this.depth++;		
 				}
 				else
-				{
-					depth++;//if there is two differents block we try to see if the chain is valid and if we can take his one or if it's a fake
-				}
-			}
-			if(depth>this.depth+1)
-			{
-				BlockChain serverBc = this.getServerChain(port);
-				ArrayList<Block> betterChain = serverBc.getBlocksOfServer(0,depth);
-				if(!this.isChainValid(betterChain))
-					return;
-				this.passInsToCurr();
-				ArrayList<Integer> toRemoveFromCur= new ArrayList<Integer>();
-				for(int i =0; i<this.currentInstruc.size();i++)
-				{
-					int found=chainHasInstruc(betterChain,this.currentInstruc.get(i));
-					if(found != -1)
-						toRemoveFromCur.add(i);
-				}
-				Collections.sort(toRemoveFromCur, Collections.reverseOrder());
-				for(int i =0; i<toRemoveFromCur.size(); i++)
-				{
-					this.currentInstruc.remove(toRemoveFromCur.get(i));
-				}
-				this.chain.clear();
-				this.chain.addAll(betterChain);
-			}
+					thereIsBetter=1;
+			}		
 		}
+		if(thereIsBetter == 1)
+		{//on peut nettement améliorer en prenant à partir du dernier block identique
+			System.out.println("9");
+			BlockChain serverBc = this.getServerChain(port);
+			ArrayList<Block> betterChain = serverBc.getBlocksOfServer(0,depth);
+			if(!this.isChainValid(betterChain))
+				return false;
+			this.passInsToCurr();
+			for(int i=0; i<betterChain.size();i++)
+			{
+				for(int j=0; j<betterChain.get(i).ops.size();j++)
+				{
+					int found=currHasInstruc(betterChain.get(i).ops.get(j));
+					if(found != -1)
+						this.currentInstruc.remove(found);
+				}
+			}
+			this.chain.clear();
+			this.chain.addAll(betterChain);
+		}
+		System.out.println("10");
+		Boolean pass=true;
 		for(int i =0; i< this.otherServers.size(); i++)
 		{
 			if(otherServers.get(i) == port)
 				continue;
 			BlockChain b = getServerChain(otherServers.get(i));
 			if(b != null)
-				b.newBlockFromOthers(newBlock,depth,this.myPort);
+				pass =b.newBlockFromOthers(newBlock,depth,this.myPort);
 		}
+		return pass;
 	}
 
 	public ArrayList<Block> getBlocksOfServer(int d, int f) throws RemoteException
@@ -406,6 +477,11 @@ public class BlockChainImpl
 			if(this.participants.get(i).id.equals(id))
 				return true;
 	    }
+	    for(int i= 0; i<this.othersParticipants.size();i++)
+		{
+			if(this.othersParticipants.get(i).equals(id))
+				return true;
+	    }	    	
 	    return false;
 	}
 	
@@ -450,4 +526,31 @@ public class BlockChainImpl
 		}
 	}
 
+	private void passBlockInsToCurr(Block bl)
+	{
+		for(int j=0; j<bl.ops.size();j++)
+		{
+			this.currentInstruc.add(bl.ops.get(j));
+
+		}	
+	}
+
+	private int oldHash(ArrayList<Block> bc, String hash)
+	{
+		for(int i=0; i<bc.size(); i++) 
+		{
+			if(bc.get(i).previousHash.equals(hash))
+				return i;
+	    }
+	    return -1;	
+	}
+
+	private void giveReward()
+	{
+		float merit=0;
+		for(int i=0; i< this.participants.size();i++)
+			merit+=this.participants.get(i).merit;
+		for(int i=0; i< this.participants.size();i++)
+			this.participants.get(i).amount+=10.0/merit;
+	}
 }

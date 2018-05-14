@@ -14,7 +14,7 @@ public class Participant implements Serializable
 	{
 		this.pub=pub;
 		this.id=id;
-		this.amount=20;
+		this.amount=10;
 		this.merit=1;
 		this.activity=0;
 	}
@@ -38,6 +38,12 @@ public class Participant implements Serializable
     public String getId()
     {
     	return this.id;
+    }
+
+    public String toString()
+    {
+    	String ret = "{Participant Id: "+ this.id +"\namount" + this.amount +"\n merit:"+ this.merit+"}\n";
+    	return ret;
     }
 
 }

@@ -2,6 +2,7 @@ import java.rmi.* ;
 import java.net.MalformedURLException ; 
 import java.security.*;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Client
 {
@@ -37,6 +38,24 @@ public class Client
         return sign.sign();        
     }
 
+    public static int proofOfWork(int min){
+        int answer=min;
+        Boolean found=false;
+        while(!found)
+        {
+            if((answer % 42) == 0)
+            {
+                found=true;
+            }
+            else
+                answer++;         
+        }
+        return answer;
+    }
+
+
+
+
     public static void main(String [] args) throws InvalidKeyException, Exception
     {
 
@@ -62,13 +81,25 @@ public class Client
 
                 byte[] sign = getSignature(client,new String[]{others.get(0),"2"});
                 System.out.println("Client receive : " + b.addInstruc(client.toString(0),others.get(0),"2",sign)) ; //add timestamps
-
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(500);
                 } catch (Exception e) {
                     System.out.println(e);
                 }
-                System.out.println("BlockChain:\n"+ b.dump());
+                System.out.println("getToWork");
+                int min = b.getWork(client.toString(0));
+                int answer = proofOfWork(min);
+                Boolean gain = b.checkWork(answer,client.toString(0));
+                if(gain)
+                    System.out.println("Gained Merit!");
+
+                try {
+                    Thread.sleep(5000);
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+                
+                System.out.println("MyState:\n"+ b.getParticipantState(client.toString(0)));
             }
             else
                 System.out.println("Inscription failed try another server.") ;

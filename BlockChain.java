@@ -16,13 +16,17 @@ public interface BlockChain extends Remote
 	  	throws RemoteException;
 	public void addNewServer(int port) 
 		throws RemoteException;
-	public void newBlockFromOthers(Block newBlock, int depth, int port) 
+	public Boolean newBlockFromOthers(Block newBlock, int depth, int port) 
 		throws RemoteException;
 	public ArrayList<Block> getBlocksOfServer(int d, int f)
 		throws RemoteException;
-	public String getWork(String participantId) 
+	public int getWork(String participantId) 
+		throws RemoteException;
+	public Boolean checkWork(int number, String participantId) 
 		throws RemoteException;
 	public ArrayList<String> getOthersParticipants(String participantId) 
+		throws RemoteException;
+	public String getParticipantState(String participantId) 
 		throws RemoteException;
 	public String dump() 
 		throws RemoteException;
