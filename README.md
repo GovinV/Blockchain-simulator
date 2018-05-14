@@ -9,7 +9,13 @@ Link: https://github.com/GovinV/Blockchain-simulator
     	./clean
 		./compile
 		./serveur [num-port] (as many as you want)
-		java Client localhost [num-port] (4 max peer server)
+		java Client localhost [num-port] (4 max peer server) (Client,ClientDump,ClientSignProblem)
+
+	To add server:
+		./serveur [num_port] [peer_port] [peer_port] ...
+
+	To have the status of a server's BlockChain:
+		java -classpath Jeu_Test ClientDump localhost [num_port]
 
 
 ##		Rapport
@@ -26,6 +32,9 @@ qui me semblait très importante.
 ici c'est ma classe client qui fait tous les différents tests, 
 comme on peut le voir dans Jeu_Test/.
 
+-J'ai implémenté les hashs et leur difficulté(nombre de 0 à trouver pour que le hash soit valide),
+les clés Publics et Privés, ainsi que la signature des transactions.
+De plus les clients peuvent aussi augmenter leur mérite en faisant une tâche(qui aurait pu être plus dur).
 
 -Mon algorithme de consensus pour avoir la meilleure Blockchain fontionne 
 de la manière suivante:
