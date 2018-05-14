@@ -14,7 +14,7 @@ Link: https://github.com/GovinV/Blockchain-simulator
 	To add server:
 		./serveur [num_port] [peer_port] [peer_port] ...
 
-	To have the status of a server's BlockChain:
+	To get the status of a server's BlockChain:
 		java -classpath Jeu_Test ClientDump localhost [num_port]
 
 
