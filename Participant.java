@@ -42,7 +42,7 @@ public class Participant implements Serializable
 
     public String toString()
     {
-    	String ret = "{Participant Id: "+ this.id +"\namount" + this.amount +"\n merit:"+ this.merit+"}\n";
+    	String ret = "{Participant Id: "+ this.id +"\namount: " + this.amount +"\n merit:"+ this.merit+"}\n";
     	return ret;
     }
 
