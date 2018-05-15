@@ -45,6 +45,12 @@ Les clients peuvent ainsi s'incrire à un serveur, lui transmettre des transacti
 demander la liste de tout les clients, demander un travail à accomplir et vérifier son travail.
 Il peut aussi avoir la blockchain d'un serveur.
 
+Mon serveur utilise deux threads:
+
+-un thread qui va vérifier si un nouveau block peut être crée.
+
+-un thread pour chaque block crée qui va miner, selon la difficulté et les informations du block.
+
 ###		Clients
 
 Je n'ai pas crée de "Noeud Participant" comme spécifié dans le sujet, 
