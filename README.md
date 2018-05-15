@@ -96,6 +96,7 @@ et récuperer les blocks suivants.
 Mon client est en fait un noeud participant mais aussi une interface de test, on peut modifié 
 le client en fonction des tests qu'on veut faire.
 J'ai deux exemples:
+
 -ClientDump localhost [num_port] => avoir la blockchain du serveur [num_port] dans le terminal
 et dans un fichier "blockchain_state_[num_port]_[timestamp].dump"
 On peut l'afficher avec echo -e.
