@@ -312,13 +312,13 @@ public class BlockChainImpl
 			return false;/*if is the size of is chain is lower or the same as our with is new block, we discard it*/
 		if(this.depth==-1)
 		{
-			System.out.println("0");
+			//System.out.println("0");
 			if(newBlock.previousHash.equals("0"))
 			{
-				System.out.println("1");
+				//System.out.println("1");
 				if(this.chain.size()>this.depth+1)
 				{
-					System.out.println("2");
+					//System.out.println("2");
 					for(int i= this.depth+1; i<this.chain.size();i++)
 					{
 						this.passBlockInsToCurr(this.chain.get(i));
@@ -342,16 +342,16 @@ public class BlockChainImpl
 		}
 		else
 		{
-			System.out.println("3");
+			//System.out.println("3");
 			int olH = oldHash(this.chain,newBlock.previousHash);
 			if(olH != -1)
 			{
-				System.out.println("4");
+				//System.out.println("4");
 				if(this.chain.get(olH).timeStamp <= newBlock.timeStamp)
 					return false;
 				else
 				{	
-					System.out.println("5");
+					//System.out.println("5");
 					if(this.depth<depth)
 						thereIsBetter=1;
 					else
@@ -360,13 +360,13 @@ public class BlockChainImpl
 			}	
 			else
 			{
-				System.out.println("6");
+				//System.out.println("6");
 				if(this.chain.get(this.depth).hash.equals(newBlock.previousHash))
 				{
-					System.out.println("7");
+					//System.out.println("7");
 					if(this.chain.size()>this.depth+1)
 					{
-						System.out.println("8");
+						//System.out.println("8");
 						for(int i= this.depth+1; i<this.chain.size();i++)
 						{
 							this.passBlockInsToCurr(this.chain.get(i));
@@ -391,7 +391,7 @@ public class BlockChainImpl
 		}
 		if(thereIsBetter == 1)
 		{//on peut nettement améliorer en prenant à partir du dernier block identique
-			System.out.println("9");
+			//System.out.println("9");
 			BlockChain serverBc = this.getServerChain(port);
 			ArrayList<Block> betterChain = serverBc.getBlocksOfServer(0,depth);
 			if(!this.isChainValid(betterChain))
@@ -409,7 +409,7 @@ public class BlockChainImpl
 			this.chain.clear();
 			this.chain.addAll(betterChain);
 		}
-		System.out.println("10");
+		//System.out.println("10");
 		Boolean pass=true;
 		for(int i =0; i< this.otherServers.size(); i++)
 		{
