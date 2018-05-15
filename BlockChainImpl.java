@@ -194,6 +194,7 @@ public class BlockChainImpl
         if(found)
         {
         	this.getParticipant(participantId).creditPOW();
+        	this.getParticipant(participantId).calculatedMerit();
         }
         return found;		
 	}
@@ -547,10 +548,14 @@ public class BlockChainImpl
 
 	private void giveReward()
 	{
+
 		float merit=0;
 		for(int i=0; i< this.participants.size();i++)
+		{
+			this.participants.get(i).calculatedMerit();
 			merit+=this.participants.get(i).merit;
+		}
 		for(int i=0; i< this.participants.size();i++)
-			this.participants.get(i).amount+=10.0/merit;
+			this.participants.get(i).amount+=(10.0*(this.participants.get(i).merit/merit));
 	}
 }

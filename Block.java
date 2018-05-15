@@ -57,19 +57,6 @@ public class Block implements Serializable
 		this.nonce=this.mThread.nonce;
 		this.hash=genHash();
 	}
-/*	public boolean checkNonce(int difficulty,long nonce)
-	{
-		String target =new String(new char[difficulty]).replace('\0', '0');
-		this.nonce=nonce;
-		this.hash=genHash();
-		if(hash.substring( 0, difficulty).equals(target))
-		{
-			this.done=true;
-			return true;
-		}
-		else 
-			return false;		
-	}*/
 
 	public void setPreviousHash(String previousHash)
 	{

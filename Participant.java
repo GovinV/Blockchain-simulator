@@ -31,8 +31,10 @@ public class Participant implements Serializable
 
 	public void calculatedMerit()
 	{
-		int add = this.activity/10;
-		int remains = this.activity%10;
+		int add = this.activity/5;
+		int remains = this.activity%5;
+		this.merit+=add;
+		this.activity=remains;
 	}
 
     public String getId()
